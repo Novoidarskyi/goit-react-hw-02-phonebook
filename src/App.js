@@ -17,14 +17,28 @@ export default class App extends Component {
   };
 
   addContact = ({ name, number }) => {
-    const contact = {
-      id: shortid.generate(),
-      name,
-      number,
-    };
+    const repeatedContact = this.state.contacts.some(item =>
+      item.name.includes(name),
+    );
 
+    if (repeatedContact) {
+      alert(`${name} already in contacts`);
+    } else {
+      const contact = {
+        id: shortid.generate(),
+        name,
+        number,
+      };
+
+      this.setState(prevState => ({
+        contacts: [contact, ...prevState.contacts],
+      }));
+    }
+  };
+
+  deleteContact = contactId => {
     this.setState(prevState => ({
-      contacts: [contact, ...prevState.contacts],
+      contacts: prevState.contacts.filter(contact => contact.id !== contactId),
     }));
   };
 
@@ -32,20 +46,26 @@ export default class App extends Component {
     this.setState({ filter: e.currentTarget.value });
   };
 
-  render() {
+  getVisibleContact = () => {
     const { contacts, filter } = this.state;
-
     const normalaizedContact = filter.toLowerCase();
-
-    const visibleContact = contacts.filter(contact =>
+    return contacts.filter(contact =>
       contact.name.toLowerCase().includes(normalaizedContact),
     );
+  };
+
+  render() {
+    const { filter } = this.state;
+    const visibleContact = this.getVisibleContact();
 
     return (
       <div className="App">
         <Phonebook onSubmit={this.addContact} />
-        <Contacts contacts={visibleContact} />
         <Filter value={filter} onChange={this.changeFilter} />
+        <Contacts
+          contacts={visibleContact}
+          ondeleteContact={this.deleteContact}
+        />
       </div>
     );
   }
